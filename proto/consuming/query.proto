@@ -1,0 +1,97 @@
+syntax = "proto3";
+package tendermint.bandchain.consuming;
+
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+// this line is used by starport scaffolding # 1
+import "consuming/buy_order_book.proto";
+import "consuming/sell_order_book.proto";
+import "consuming/oracle.proto";
+
+option go_package = "github.com/tendermint/bandchain/x/consuming/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // this line is used by starport scaffolding # 2
+
+	// Queries a buyOrderBook by index.
+	rpc BuyOrderBook(QueryGetBuyOrderBookRequest) returns (QueryGetBuyOrderBookResponse) {
+		option (google.api.http).get = "/tendermint/bandchain/consuming/buyOrderBook/{index}";
+	}
+
+	// Queries a list of buyOrderBook items.
+	rpc BuyOrderBookAll(QueryAllBuyOrderBookRequest) returns (QueryAllBuyOrderBookResponse) {
+		option (google.api.http).get = "/tendermint/bandchain/consuming/buyOrderBook";
+	}
+
+
+	// Queries a sellOrderBook by index.
+	rpc SellOrderBook(QueryGetSellOrderBookRequest) returns (QueryGetSellOrderBookResponse) {
+		option (google.api.http).get = "/tendermint/bandchain/consuming/sellOrderBook/{index}";
+	}
+
+	// Queries a list of sellOrderBook items.
+	rpc SellOrderBookAll(QueryAllSellOrderBookRequest) returns (QueryAllSellOrderBookResponse) {
+		option (google.api.http).get = "/tendermint/bandchain/consuming/sellOrderBook";
+	}
+
+
+  // Request defines a rpc handler method for MsgOracleData.
+  rpc OracleResult(QueryOracleRequest) returns (QueryOracleResponse) {
+    option (google.api.http).get = "/tendermint/consuming/result/{request_id}";
+  }
+
+  // LastOracleId
+  rpc LastOracleId(QueryLastOracleIdRequest) returns (QueryLastOracleIdResponse) {
+    option (google.api.http).get = "/tendermint/consuming/last_request_id";
+  }
+}
+
+// this line is used by starport scaffolding # 3
+message QueryGetBuyOrderBookRequest {
+	string index = 1;
+}
+
+message QueryGetBuyOrderBookResponse {
+	BuyOrderBook BuyOrderBook = 1;
+}
+
+message QueryAllBuyOrderBookRequest {
+	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllBuyOrderBookResponse {
+	repeated BuyOrderBook BuyOrderBook = 1;
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+message QueryGetSellOrderBookRequest {
+	string index = 1;
+}
+
+message QueryGetSellOrderBookResponse {
+	SellOrderBook SellOrderBook = 1;
+}
+
+message QueryAllSellOrderBookRequest {
+	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllSellOrderBookResponse {
+	repeated SellOrderBook SellOrderBook = 1;
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryOracleRequest is the request type for the Query/Result RPC method
+message QueryOracleRequest {int64 request_id = 1;}
+
+// QueryOracleResponse is the response type for the Query/Result RPC method
+message QueryOracleResponse {
+  // pagination defines an optional pagination for the request.
+  OracleResult result = 1;
+}
+
+// QueryLastOracleIdRequest
+message QueryLastOracleIdRequest {}
+
+// QueryLastOracleIdResponse
+message QueryLastOracleIdResponse {int64 request_id = 1;}

@@ -88,6 +88,9 @@ import (
 	bandchainmodule "github.com/tendermint/bandchain/x/bandchain"
 	bandchainmodulekeeper "github.com/tendermint/bandchain/x/bandchain/keeper"
 	bandchainmoduletypes "github.com/tendermint/bandchain/x/bandchain/types"
+	consumingmodule "github.com/tendermint/bandchain/x/consuming"
+	consumingmodulekeeper "github.com/tendermint/bandchain/x/consuming/keeper"
+	consumingmoduletypes "github.com/tendermint/bandchain/x/consuming/types"
 )
 
 const Name = "bandchain"
@@ -134,6 +137,7 @@ var (
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
+		consumingmodule.AppModuleBasic{},
 		bandchainmodule.AppModuleBasic{},
 	)
 
@@ -201,6 +205,8 @@ type App struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
+	ScopedConsumingKeeper capabilitykeeper.ScopedKeeper
+	ConsumingKeeper       consumingmodulekeeper.Keeper
 
 	BandchainKeeper bandchainmodulekeeper.Keeper
 
@@ -232,6 +238,7 @@ func New(
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
+		consumingmoduletypes.StoreKey,
 		bandchainmoduletypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -324,6 +331,17 @@ func New(
 	app.EvidenceKeeper = *evidenceKeeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
+	scopedConsumingKeeper := app.CapabilityKeeper.ScopeToModule(consumingmoduletypes.ModuleName)
+	app.ScopedConsumingKeeper = scopedConsumingKeeper
+	app.ConsumingKeeper = *consumingmodulekeeper.NewKeeper(
+		appCodec,
+		keys[consumingmoduletypes.StoreKey],
+		keys[consumingmoduletypes.MemStoreKey],
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		scopedConsumingKeeper,
+	)
+	consumingModule := consumingmodule.NewAppModule(appCodec, app.ConsumingKeeper)
 
 	app.BandchainKeeper = *bandchainmodulekeeper.NewKeeper(
 		appCodec,
@@ -341,6 +359,7 @@ func New(
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
 	// this line is used by starport scaffolding # ibc/app/router
+	ibcRouter.AddRoute(consumingmoduletypes.ModuleName, consumingModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	/****  Module Options ****/
@@ -373,6 +392,7 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
+		consumingModule,
 		bandchainModule,
 	)
 
@@ -407,6 +427,7 @@ func New(
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
+		consumingmoduletypes.ModuleName,
 		bandchainmoduletypes.ModuleName,
 	)
 
@@ -595,6 +616,7 @@ func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyA
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
+	paramsKeeper.Subspace(consumingmoduletypes.ModuleName)
 	paramsKeeper.Subspace(bandchainmoduletypes.ModuleName)
 
 	return paramsKeeper
