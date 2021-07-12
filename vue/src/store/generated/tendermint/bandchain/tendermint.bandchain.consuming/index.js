@@ -181,23 +181,6 @@ export default {
                 throw new SpVuexError('QueryClient:QueryLastCoinRatesId', 'API Node Unavailable. Could not perform query: ' + e.message);
             }
         },
-        async sendMsgGoldPriceData({ rootGetters }, { value, fee = [], memo = '' }) {
-            try {
-                const txClient = await initTxClient(rootGetters);
-                const msg = await txClient.msgGoldPriceData(value);
-                const result = await txClient.signAndBroadcast([msg], { fee: { amount: fee,
-                        gas: "200000" }, memo });
-                return result;
-            }
-            catch (e) {
-                if (e == MissingWalletError) {
-                    throw new SpVuexError('TxClient:MsgGoldPriceData:Init', 'Could not initialize signing client. Wallet is required.');
-                }
-                else {
-                    throw new SpVuexError('TxClient:MsgGoldPriceData:Send', 'Could not broadcast Tx: ' + e.message);
-                }
-            }
-        },
         async sendMsgCoinRatesData({ rootGetters }, { value, fee = [], memo = '' }) {
             try {
                 const txClient = await initTxClient(rootGetters);
@@ -215,18 +198,20 @@ export default {
                 }
             }
         },
-        async MsgGoldPriceData({ rootGetters }, { value }) {
+        async sendMsgGoldPriceData({ rootGetters }, { value, fee = [], memo = '' }) {
             try {
                 const txClient = await initTxClient(rootGetters);
                 const msg = await txClient.msgGoldPriceData(value);
-                return msg;
+                const result = await txClient.signAndBroadcast([msg], { fee: { amount: fee,
+                        gas: "200000" }, memo });
+                return result;
             }
             catch (e) {
                 if (e == MissingWalletError) {
                     throw new SpVuexError('TxClient:MsgGoldPriceData:Init', 'Could not initialize signing client. Wallet is required.');
                 }
                 else {
-                    throw new SpVuexError('TxClient:MsgGoldPriceData:Create', 'Could not create message: ' + e.message);
+                    throw new SpVuexError('TxClient:MsgGoldPriceData:Send', 'Could not broadcast Tx: ' + e.message);
                 }
             }
         },
@@ -242,6 +227,21 @@ export default {
                 }
                 else {
                     throw new SpVuexError('TxClient:MsgCoinRatesData:Create', 'Could not create message: ' + e.message);
+                }
+            }
+        },
+        async MsgGoldPriceData({ rootGetters }, { value }) {
+            try {
+                const txClient = await initTxClient(rootGetters);
+                const msg = await txClient.msgGoldPriceData(value);
+                return msg;
+            }
+            catch (e) {
+                if (e == MissingWalletError) {
+                    throw new SpVuexError('TxClient:MsgGoldPriceData:Init', 'Could not initialize signing client. Wallet is required.');
+                }
+                else {
+                    throw new SpVuexError('TxClient:MsgGoldPriceData:Create', 'Could not create message: ' + e.message);
                 }
             }
         },
