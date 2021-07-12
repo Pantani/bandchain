@@ -4,94 +4,56 @@ package tendermint.bandchain.consuming;
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 // this line is used by starport scaffolding # 1
-import "consuming/buy_order_book.proto";
-import "consuming/sell_order_book.proto";
-import "consuming/oracle.proto";
+import "consuming/gold_price.proto";
+import "consuming/coin_rates.proto";
 
 option go_package = "github.com/tendermint/bandchain/x/consuming/types";
 
 // Query defines the gRPC querier service.
 service Query {
-  // this line is used by starport scaffolding # 2
+    // this line is used by starport scaffolding # 2
 
-	// Queries a buyOrderBook by index.
-	rpc BuyOrderBook(QueryGetBuyOrderBookRequest) returns (QueryGetBuyOrderBookResponse) {
-		option (google.api.http).get = "/tendermint/bandchain/consuming/buyOrderBook/{index}";
-	}
+  	// GoldPriceResult defines a rpc handler method for MsgGoldPriceData.
+  	rpc GoldPriceResult(QueryGoldPriceRequest) returns (QueryGoldPriceResponse) {
+		option (google.api.http).get = "/bandchain/consuming/gold_price_result/{request_id}";
+  	}
 
-	// Queries a list of buyOrderBook items.
-	rpc BuyOrderBookAll(QueryAllBuyOrderBookRequest) returns (QueryAllBuyOrderBookResponse) {
-		option (google.api.http).get = "/tendermint/bandchain/consuming/buyOrderBook";
-	}
-
-
-	// Queries a sellOrderBook by index.
-	rpc SellOrderBook(QueryGetSellOrderBookRequest) returns (QueryGetSellOrderBookResponse) {
-		option (google.api.http).get = "/tendermint/bandchain/consuming/sellOrderBook/{index}";
-	}
-
-	// Queries a list of sellOrderBook items.
-	rpc SellOrderBookAll(QueryAllSellOrderBookRequest) returns (QueryAllSellOrderBookResponse) {
-		option (google.api.http).get = "/tendermint/bandchain/consuming/sellOrderBook";
-	}
+  	// LastGoldPriceId query the last GoldPrice result id
+  	rpc LastGoldPriceId(QueryLastGoldPriceIdRequest) returns (QueryLastGoldPriceIdResponse) {
+		option (google.api.http).get = "/bandchain/consuming/last_gold_price_id";
+  	}
 
 
-  // Request defines a rpc handler method for MsgOracleData.
-  rpc OracleResult(QueryOracleRequest) returns (QueryOracleResponse) {
-    option (google.api.http).get = "/tendermint/consuming/result/{request_id}";
-  }
+  	// CoinRatesResult defines a rpc handler method for MsgCoinRatesData.
+  	rpc CoinRatesResult(QueryCoinRatesRequest) returns (QueryCoinRatesResponse) {
+		option (google.api.http).get = "/bandchain/consuming/coin_rates_result/{request_id}";
+  	}
 
-  // LastOracleId
-  rpc LastOracleId(QueryLastOracleIdRequest) returns (QueryLastOracleIdResponse) {
-    option (google.api.http).get = "/tendermint/consuming/last_request_id";
-  }
+  	// LastCoinRatesId query the last CoinRates result id
+  	rpc LastCoinRatesId(QueryLastCoinRatesIdRequest) returns (QueryLastCoinRatesIdResponse) {
+		option (google.api.http).get = "/bandchain/consuming/last_coin_rates_id";
+  	}
+
 }
 
 // this line is used by starport scaffolding # 3
-message QueryGetBuyOrderBookRequest {
-	string index = 1;
+message QueryGoldPriceRequest {int64 request_id = 1;}
+
+message QueryGoldPriceResponse {
+  GoldPriceResult result = 1;
 }
 
-message QueryGetBuyOrderBookResponse {
-	BuyOrderBook BuyOrderBook = 1;
+message QueryLastGoldPriceIdRequest {}
+
+message QueryLastGoldPriceIdResponse {int64 request_id = 1;}
+
+message QueryCoinRatesRequest {int64 request_id = 1;}
+
+message QueryCoinRatesResponse {
+  CoinRatesResult result = 1;
 }
 
-message QueryAllBuyOrderBookRequest {
-	cosmos.base.query.v1beta1.PageRequest pagination = 1;
-}
+message QueryLastCoinRatesIdRequest {}
 
-message QueryAllBuyOrderBookResponse {
-	repeated BuyOrderBook BuyOrderBook = 1;
-	cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
-message QueryGetSellOrderBookRequest {
-	string index = 1;
-}
+message QueryLastCoinRatesIdResponse {int64 request_id = 1;}
 
-message QueryGetSellOrderBookResponse {
-	SellOrderBook SellOrderBook = 1;
-}
-
-message QueryAllSellOrderBookRequest {
-	cosmos.base.query.v1beta1.PageRequest pagination = 1;
-}
-
-message QueryAllSellOrderBookResponse {
-	repeated SellOrderBook SellOrderBook = 1;
-	cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
-
-// QueryOracleRequest is the request type for the Query/Result RPC method
-message QueryOracleRequest {int64 request_id = 1;}
-
-// QueryOracleResponse is the response type for the Query/Result RPC method
-message QueryOracleResponse {
-  // pagination defines an optional pagination for the request.
-  OracleResult result = 1;
-}
-
-// QueryLastOracleIdRequest
-message QueryLastOracleIdRequest {}
-
-// QueryLastOracleIdResponse
-message QueryLastOracleIdResponse {int64 request_id = 1;}

@@ -31,11 +31,3 @@ var (
 func KeyPrefix(p string) []byte {
 	return []byte(p)
 }
-
-const (
-	SellOrderBookKey = "SellOrderBook-value-"
-)
-
-const (
-	BuyOrderBookKey = "BuyOrderBook-value-"
-)

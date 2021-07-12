@@ -80,7 +80,6 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	appparams "github.com/tendermint/bandchain/app/params"
 	"github.com/tendermint/bandchain/docs"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -91,9 +90,14 @@ import (
 	consumingmodule "github.com/tendermint/bandchain/x/consuming"
 	consumingmodulekeeper "github.com/tendermint/bandchain/x/consuming/keeper"
 	consumingmoduletypes "github.com/tendermint/bandchain/x/consuming/types"
+
+	"github.com/tendermint/spm/cosmoscmd"
 )
 
-const Name = "bandchain"
+const (
+	AccountAddressPrefix = "cosmos"
+	Name                 = "bandchain"
+)
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
 
@@ -150,11 +154,12 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 )
 
 var (
-	_ CosmosApp               = (*App)(nil)
+	_ cosmoscmd.CosmosApp     = (*App)(nil)
 	_ servertypes.Application = (*App)(nil)
 )
 
@@ -215,13 +220,18 @@ type App struct {
 }
 
 // New returns a reference to an initialized Gaia.
-// NewSimApp returns a reference to an initialized SimApp.
 func New(
-	logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool,
-	homePath string, invCheckPeriod uint, encodingConfig appparams.EncodingConfig,
-	// this line is used by starport scaffolding # stargate/app/newArgument
-	appOpts servertypes.AppOptions, baseAppOptions ...func(*baseapp.BaseApp),
-) *App {
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	loadLatest bool,
+	skipUpgradeHeights map[int64]bool,
+	homePath string,
+	invCheckPeriod uint,
+	encodingConfig cosmoscmd.EncodingConfig,
+	appOpts servertypes.AppOptions,
+	baseAppOptions ...func(*baseapp.BaseApp),
+) cosmoscmd.App {
 
 	appCodec := encodingConfig.Marshaler
 	cdc := encodingConfig.Amino
@@ -330,7 +340,18 @@ func New(
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
 
-	// this line is used by starport scaffolding # stargate/app/keeperDefinition
+	app.GovKeeper = govkeeper.NewKeeper(
+		appCodec, keys[govtypes.StoreKey], app.GetSubspace(govtypes.ModuleName), app.AccountKeeper, app.BankKeeper,
+		&stakingKeeper, govRouter,
+	)
+
+	app.BandchainKeeper = *bandchainmodulekeeper.NewKeeper(
+		appCodec,
+		keys[bandchainmoduletypes.StoreKey],
+		keys[bandchainmoduletypes.MemStoreKey],
+	)
+	bandchainModule := bandchainmodule.NewAppModule(appCodec, app.BandchainKeeper)
+
 	scopedConsumingKeeper := app.CapabilityKeeper.ScopeToModule(consumingmoduletypes.ModuleName)
 	app.ScopedConsumingKeeper = scopedConsumingKeeper
 	app.ConsumingKeeper = *consumingmodulekeeper.NewKeeper(
@@ -343,17 +364,7 @@ func New(
 	)
 	consumingModule := consumingmodule.NewAppModule(appCodec, app.ConsumingKeeper)
 
-	app.BandchainKeeper = *bandchainmodulekeeper.NewKeeper(
-		appCodec,
-		keys[bandchainmoduletypes.StoreKey],
-		keys[bandchainmoduletypes.MemStoreKey],
-	)
-	bandchainModule := bandchainmodule.NewAppModule(appCodec, app.BandchainKeeper)
-
-	app.GovKeeper = govkeeper.NewKeeper(
-		appCodec, keys[govtypes.StoreKey], app.GetSubspace(govtypes.ModuleName), app.AccountKeeper, app.BankKeeper,
-		&stakingKeeper, govRouter,
-	)
+	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()

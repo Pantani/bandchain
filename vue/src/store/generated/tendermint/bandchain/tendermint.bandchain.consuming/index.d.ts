@@ -1,13 +1,9 @@
-import { BuyOrderBook } from "./module/types/consuming/buy_order_book";
-import { CallData } from "./module/types/consuming/oracle";
-import { OracleResult } from "./module/types/consuming/oracle";
+import { CoinRatesCallData } from "./module/types/consuming/coin_rates";
+import { CoinRatesResult } from "./module/types/consuming/coin_rates";
+import { GoldPriceCallData } from "./module/types/consuming/gold_price";
+import { GoldPriceResult } from "./module/types/consuming/gold_price";
 import { ConsumingPacketData } from "./module/types/consuming/packet";
 import { NoData } from "./module/types/consuming/packet";
-import { SellOrderPacketData } from "./module/types/consuming/packet";
-import { SellOrderPacketAck } from "./module/types/consuming/packet";
-import { CreatePairPacketData } from "./module/types/consuming/packet";
-import { CreatePairPacketAck } from "./module/types/consuming/packet";
-import { SellOrderBook } from "./module/types/consuming/sell_order_book";
-export { BuyOrderBook, CallData, OracleResult, ConsumingPacketData, NoData, SellOrderPacketData, SellOrderPacketAck, CreatePairPacketData, CreatePairPacketAck, SellOrderBook };
+export { CoinRatesCallData, CoinRatesResult, GoldPriceCallData, GoldPriceResult, ConsumingPacketData, NoData };
 declare const _default;
 export default _default;

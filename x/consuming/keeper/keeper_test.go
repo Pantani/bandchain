@@ -27,8 +27,12 @@ func setupKeeper(t testing.TB) (*Keeper, sdk.Context) {
 
 	registry := codectypes.NewInterfaceRegistry()
 	keeper := NewKeeper(
-		codec.NewProtoCodec(registry), storeKey, memStoreKey,
-		nil, nil, nil,
+		codec.NewProtoCodec(registry),
+		storeKey,
+		memStoreKey,
+		nil,
+		nil,
+		nil,
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())

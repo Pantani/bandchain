@@ -1,7 +1,7 @@
 package types
 
 import (
-	"fmt"
+	// this line is used by starport scaffolding # genesis/types/import
 	host "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
 )
 
@@ -13,8 +13,6 @@ func DefaultGenesis() *GenesisState {
 	return &GenesisState{
 		PortId: PortID,
 		// this line is used by starport scaffolding # genesis/types/default
-		BuyOrderBookList:  []*BuyOrderBook{},
-		SellOrderBookList: []*SellOrderBook{},
 	}
 }
 
@@ -26,24 +24,6 @@ func (gs GenesisState) Validate() error {
 	}
 
 	// this line is used by starport scaffolding # genesis/types/validate
-	// Check for duplicated index in buyOrderBook
-	buyOrderBookIndexMap := make(map[string]bool)
-
-	for _, elem := range gs.BuyOrderBookList {
-		if _, ok := buyOrderBookIndexMap[elem.Index]; ok {
-			return fmt.Errorf("duplicated index for buyOrderBook")
-		}
-		buyOrderBookIndexMap[elem.Index] = true
-	}
-	// Check for duplicated index in sellOrderBook
-	sellOrderBookIndexMap := make(map[string]bool)
-
-	for _, elem := range gs.SellOrderBookList {
-		if _, ok := sellOrderBookIndexMap[elem.Index]; ok {
-			return fmt.Errorf("duplicated index for sellOrderBook")
-		}
-		sellOrderBookIndexMap[elem.Index] = true
-	}
 
 	return nil
 }

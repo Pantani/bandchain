@@ -132,14 +132,13 @@ func (am AppModule) OnRecvPacket(
 	var ack channeltypes.Acknowledgement
 
 	// this line is used by starport scaffolding # oracle/packet/module/recv
-	ack, oracleResult, err := am.handleOraclePacket(ctx, modulePacket)
+	oracleAck, err := am.handleOraclePacket(ctx, modulePacket)
 	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet data: %s", err.Error())
-	} else if oracleResult.Size() > 0 {
-		ctx.Logger().Debug("Receive oracle packet", "result", oracleResult)
+		return nil, nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet data: "+err.Error())
+	} else if ack != oracleAck {
 		return &sdk.Result{
 			Events: ctx.EventManager().Events().ToABCIEvents(),
-		}, ack.GetBytes(), nil
+		}, oracleAck.GetBytes(), nil
 	}
 
 	var modulePacketData types.ConsumingPacketData
@@ -150,44 +149,6 @@ func (am AppModule) OnRecvPacket(
 	// Dispatch packet
 	switch packet := modulePacketData.Packet.(type) {
 	// this line is used by starport scaffolding # ibc/packet/module/recv
-	case *types.ConsumingPacketData_SellOrderPacket:
-		packetAck, err := am.keeper.OnRecvSellOrderPacket(ctx, modulePacket, *packet.SellOrderPacket)
-		if err != nil {
-			ack = channeltypes.NewErrorAcknowledgement(err.Error())
-		} else {
-			// Encode packet acknowledgment
-			packetAckBytes, err := types.ModuleCdc.MarshalJSON(&packetAck)
-			if err != nil {
-				return nil, []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-			}
-			ack = channeltypes.NewResultAcknowledgement(sdk.MustSortJSON(packetAckBytes))
-		}
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeSellOrderPacket,
-				sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-				sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", err != nil)),
-			),
-		)
-	case *types.ConsumingPacketData_CreatePairPacket:
-		packetAck, err := am.keeper.OnRecvCreatePairPacket(ctx, modulePacket, *packet.CreatePairPacket)
-		if err != nil {
-			ack = channeltypes.NewErrorAcknowledgement(err.Error())
-		} else {
-			// Encode packet acknowledgment
-			packetAckBytes, err := types.ModuleCdc.MarshalJSON(&packetAck)
-			if err != nil {
-				return nil, []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-			}
-			ack = channeltypes.NewResultAcknowledgement(sdk.MustSortJSON(packetAckBytes))
-		}
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeCreatePairPacket,
-				sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-				sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", err != nil)),
-			),
-		)
 	default:
 		errMsg := fmt.Sprintf("unrecognized %s packet type: %T", types.ModuleName, packet)
 		return nil, []byte{}, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
@@ -210,13 +171,11 @@ func (am AppModule) OnAcknowledgementPacket(
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet acknowledgement: %v", err)
 	}
 
-	var requestID types.RequestID
-	ctx, requestID = am.handleOracleAcknowledgement(ctx, ack)
-	if requestID > 0 {
-		ctx.Logger().Debug("Receive oracle ack", "request_id", requestID)
-		return &sdk.Result{
-			Events: ctx.EventManager().Events().ToABCIEvents(),
-		}, nil
+	// this line is used by starport scaffolding # oracle/packet/module/ack
+	sdkResult := am.handleOracleAcknowledgement(ctx, ack, modulePacket)
+	if sdkResult != nil {
+		sdkResult.Events = ctx.EventManager().Events().ToABCIEvents()
+		return sdkResult, nil
 	}
 
 	var modulePacketData types.ConsumingPacketData
@@ -229,18 +188,6 @@ func (am AppModule) OnAcknowledgementPacket(
 	// Dispatch packet
 	switch packet := modulePacketData.Packet.(type) {
 	// this line is used by starport scaffolding # ibc/packet/module/ack
-	case *types.ConsumingPacketData_SellOrderPacket:
-		err := am.keeper.OnAcknowledgementSellOrderPacket(ctx, modulePacket, *packet.SellOrderPacket, ack)
-		if err != nil {
-			return nil, err
-		}
-		eventType = types.EventTypeSellOrderPacket
-	case *types.ConsumingPacketData_CreatePairPacket:
-		err := am.keeper.OnAcknowledgementCreatePairPacket(ctx, modulePacket, *packet.CreatePairPacket, ack)
-		if err != nil {
-			return nil, err
-		}
-		eventType = types.EventTypeCreatePairPacket
 	default:
 		errMsg := fmt.Sprintf("unrecognized %s packet type: %T", types.ModuleName, packet)
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
@@ -289,16 +236,6 @@ func (am AppModule) OnTimeoutPacket(
 	// Dispatch packet
 	switch packet := modulePacketData.Packet.(type) {
 	// this line is used by starport scaffolding # ibc/packet/module/timeout
-	case *types.ConsumingPacketData_SellOrderPacket:
-		err := am.keeper.OnTimeoutSellOrderPacket(ctx, modulePacket, *packet.SellOrderPacket)
-		if err != nil {
-			return nil, err
-		}
-	case *types.ConsumingPacketData_CreatePairPacket:
-		err := am.keeper.OnTimeoutCreatePairPacket(ctx, modulePacket, *packet.CreatePairPacket)
-		if err != nil {
-			return nil, err
-		}
 	default:
 		errMsg := fmt.Sprintf("unrecognized %s packet type: %T", types.ModuleName, packet)
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)

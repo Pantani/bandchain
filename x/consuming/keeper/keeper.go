@@ -29,6 +29,7 @@ func NewKeeper(
 	channelKeeper types.ChannelKeeper,
 	portKeeper types.PortKeeper,
 	scopedKeeper types.ScopedKeeper,
+
 ) *Keeper {
 	return &Keeper{
 		cdc:           cdc,

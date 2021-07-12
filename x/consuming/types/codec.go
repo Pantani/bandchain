@@ -9,24 +9,19 @@ import (
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	// this line is used by starport scaffolding # 2
-	cdc.RegisterConcrete(&MsgSendSellOrder{}, "consuming/SendSellOrder", nil)
+	cdc.RegisterConcrete(&MsgGoldPriceData{}, "consuming/GoldPriceData", nil)
 
-	cdc.RegisterConcrete(&MsgSendCreatePair{}, "consuming/SendCreatePair", nil)
+	cdc.RegisterConcrete(&MsgCoinRatesData{}, "consuming/CoinRatesData", nil)
 
-	cdc.RegisterConcrete(&MsgOracleData{}, "consuming/OracleData", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	// this line is used by starport scaffolding # 3
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgSendSellOrder{},
+		&MsgGoldPriceData{},
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgSendCreatePair{},
-	)
-
-	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgOracleData{},
+		&MsgCoinRatesData{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

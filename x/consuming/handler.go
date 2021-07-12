@@ -18,16 +18,12 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 		switch msg := msg.(type) {
 		// this line is used by starport scaffolding # 1
-		case *types.MsgOracleData:
-			res, err := msgServer.OracleData(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgGoldPriceData:
+			res, err := msgServer.GoldPriceData(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgSendSellOrder:
-			res, err := msgServer.SendSellOrder(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *types.MsgSendCreatePair:
-			res, err := msgServer.SendCreatePair(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgCoinRatesData:
+			res, err := msgServer.CoinRatesData(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		default:
